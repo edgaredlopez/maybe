@@ -1,4 +1,4 @@
-# compose.yml - Para uso en Coolify con tu fork personal
+# compose.yml - Optimizado para Coolify
 version: '3.9'
 
 # Variables compartidas usando YAML anchors
@@ -13,10 +13,16 @@ x-rails-env: &rails_env
   SELF_HOSTED: "true"
   RAILS_FORCE_SSL: "false"
   RAILS_ASSUME_SSL: "false"
+  RAILS_ENV: "production"
   DB_HOST: db
   DB_PORT: 5432
   REDIS_URL: redis://redis:6379/1
   OPENAI_ACCESS_TOKEN: ${OPENAI_ACCESS_TOKEN}
+  # Deshabilitar Skylight en producción si no tienes token
+  SKYLIGHT_AUTHENTICATION: ""
+  # Variables adicionales para Maybe Finance
+  RAILS_SERVE_STATIC_FILES: "true"
+  RAILS_LOG_TO_STDOUT: "true"
 
 services:
   # Servicio Web - Interfaz de usuario de Maybe Finance
@@ -26,8 +32,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - app-storage:/rails/storage
-    ports:
-      - 4003:3000
+    # REMOVIDO: ports - Coolify maneja esto automáticamente
     restart: unless-stopped
     environment:
       <<: *rails_env
@@ -38,6 +43,13 @@ services:
         condition: service_healthy
     networks:
       - maybe_net
+    # Agregar healthcheck para el servicio web
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Servicio Worker - Procesamiento de jobs en segundo plano
   worker:
@@ -47,6 +59,8 @@ services:
     command: bundle exec sidekiq
     restart: unless-stopped
     depends_on:
+      db:
+        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
@@ -66,7 +80,7 @@ services:
       <<: *db_env
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
@@ -74,13 +88,13 @@ services:
 
   # Redis para cache y cola de jobs
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis-data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
