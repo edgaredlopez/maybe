@@ -40,8 +40,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)
-      - traefik.http.routers.cash.entrypoints=websecure
-      - traefik.http.routers.cash.tls=true
+      - traefik.http.routers.cash.entrypoints=web
       - traefik.http.services.cash.loadbalancer.server.port=3000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
