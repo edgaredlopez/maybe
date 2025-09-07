@@ -37,11 +37,13 @@ services:
         condition: service_healthy
     networks:
       - maybe_net
+      - coolify
     labels:
       - traefik.enable=true
-      - traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)
+      - "traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)"
       - traefik.http.routers.cash.entrypoints=web
       - traefik.http.services.cash.loadbalancer.server.port=3000
+      - traefik.docker.network=coolify
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
       interval: 30s
@@ -103,3 +105,6 @@ volumes:
 networks:
   maybe_net:
     driver: bridge
+  coolify:
+    external: true
+    name: coolify
