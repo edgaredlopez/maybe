@@ -41,7 +41,7 @@ services:
     labels:
       - traefik.enable=true
       - "traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)"
-      - traefik.http.routers.cash.entrypoints=web
+      - traefik.http.routers.cash.entrypoints=http  # Cambiar de 'web' a 'http'
       - traefik.http.services.cash.loadbalancer.server.port=3000
       - traefik.docker.network=coolify
     healthcheck:
