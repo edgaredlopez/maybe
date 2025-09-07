@@ -41,9 +41,11 @@ services:
     labels:
       - traefik.enable=true
       - "traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)"
-      - traefik.http.routers.cash.entrypoints=http  # Cambiar de 'web' a 'http'
+      - traefik.http.routers.cash.entrypoints=http
       - traefik.http.services.cash.loadbalancer.server.port=3000
       - traefik.docker.network=coolify
+      # Deshabilitar el router automático problemático
+      - traefik.http.routers.http-0-ico4c8k8ggkwcgows44sos0g-web.rule=""
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
       interval: 30s
