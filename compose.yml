@@ -40,12 +40,14 @@ services:
       - coolify
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.cash.rule=Host(`cash.edbyte.dev`)"
-      - traefik.http.routers.cash.entrypoints=http
-      - traefik.http.services.cash.loadbalancer.server.port=3000
-      - traefik.docker.network=coolify
-      # Deshabilitar el router automático problemático
-      - traefik.http.routers.http-0-ico4c8k8ggkwcgows44sos0g-web.rule=""
+      - "traefik.http.routers.cash-web.rule=Host(`cash.edbyte.dev`)"
+      - "traefik.http.routers.cash-web.entrypoints=web"
+      - "traefik.http.routers.cash-web.tls=true"
+      - "traefik.http.routers.cash-web-http.rule=Host(`cash.edbyte.dev`)"
+      - "traefik.http.routers.cash-web-http.entrypoints=http"
+      - "traefik.http.routers.cash-web-http.middlewares=redirect-to-https"
+      - "traefik.http.services.cash-web.loadbalancer.server.port=3000"
+      - "traefik.docker.network=coolify"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
       interval: 30s
@@ -89,6 +91,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --requirepass "" --protected-mode no
     volumes:
       - redis-data:/data
     healthcheck:
@@ -98,6 +101,7 @@ services:
       retries: 5
     networks:
       - maybe_net
+      - coolify
 
 volumes:
   app-storage:
